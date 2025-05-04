@@ -17,6 +17,11 @@ const config = {
     "@acme/validators",
   ],
 
+  // Add this if you're NOT using edge runtime
+  experimental: {
+    serverComponentsExternalPackages: ["@prisma/client"],
+  },
+
   /** We already do linting and typechecking as separate tasks in CI */
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },

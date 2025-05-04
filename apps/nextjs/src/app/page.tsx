@@ -1,38 +1,29 @@
 import { Suspense } from "react";
-
-import { api, HydrateClient } from "~/trpc/server";
-import { AuthShowcase } from "./_components/auth-showcase";
-import {
-  CreatePostForm,
-  PostCardSkeleton,
-  PostList,
-} from "./_components/posts";
+import { HydrateClient } from "~/trpc/server";
+// import { ProfileTable } from "./_components/linkedin";
 
 export default function HomePage() {
-  // You can await this here if you don't want to show Suspense fallback below
-  void api.post.all.prefetch();
-
   return (
     <HydrateClient>
       <main className="container h-screen py-16">
         <div className="flex flex-col items-center justify-center gap-4">
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-primary">T3</span> Turbo
+            Lyra <span className="text-primary">Extension</span> Dashboard
           </h1>
-          <AuthShowcase />
-
-          <CreatePostForm />
-          <div className="w-full max-w-2xl overflow-y-scroll">
+          <div className="w-full max-w-4xl">
             <Suspense
               fallback={
                 <div className="flex w-full flex-col gap-4">
-                  <PostCardSkeleton />
-                  <PostCardSkeleton />
-                  <PostCardSkeleton />
+                  <div className="h-20 w-full animate-pulse rounded-md bg-muted" />
+                  <div className="h-20 w-full animate-pulse rounded-md bg-muted" />
+                  <div className="h-20 w-full animate-pulse rounded-md bg-muted" />
                 </div>
               }
             >
-              <PostList />
+              <div>
+                <h1>Hello</h1>
+              </div>
+              {/* <ProfileTable /> */}
             </Suspense>
           </div>
         </div>

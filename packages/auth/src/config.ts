@@ -21,6 +21,8 @@ declare module "next-auth" {
 
 const adapter = PrismaAdapter(db);
 
+console.log("Auth adapter initialized with database connection");
+
 export const isSecureContext = env.NODE_ENV !== "development";
 
 export const authConfig = {
