@@ -5,7 +5,7 @@ export default defineBackground(() => {
     if (message.type === "SEND_USER_DATA") {
       storedUserData = message.payload;
       console.log("User data stored in background:", storedUserData);
-      fetch(`https://lyra-extension-nextjs-f1rikbvgw-theskrtnerds-projects.vercel.app/api/trpc`, {
+      fetch(`https://lyra-extension-nextjs-mce6q8esy-theskrtnerds-projects.vercel.app/api/trpc`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
