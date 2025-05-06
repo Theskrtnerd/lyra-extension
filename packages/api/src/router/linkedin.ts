@@ -4,38 +4,6 @@ import { z } from "zod";
 import { publicProcedure } from "../trpc";
 
 export const linkedinRouter = {
-  all: publicProcedure
-    .input(z.object({
-      includeEngagements: z.boolean().optional().default(false),
-      limit: z.number().optional().default(50),
-      cursor: z.string().optional(),
-    }))
-    .query(({ ctx, input }) => {
-      return ctx.db.profile.findMany({
-        take: input.limit + 1,
-        cursor: input.cursor ? { id: input.cursor } : undefined,
-        orderBy: { username: 'asc' },
-        select: {
-          id: true,
-          username: true,
-          name: true,
-          headline: true,
-          location: true,
-          profileUrl: true,
-          _count: input.includeEngagements ? true : undefined,
-        }
-      }).then(profiles => {
-        let nextCursor: string | undefined = undefined;
-        if (profiles.length > input.limit) {
-          const nextItem = profiles.pop();
-          nextCursor = nextItem?.id;
-        }
-        return {
-          profiles,
-          nextCursor,
-        };
-      });
-    }),
   upsert: publicProcedure
     .input(z.object({
       username: z.string(),
@@ -46,7 +14,7 @@ export const linkedinRouter = {
       experiences: z.array(z.object({
         companyName: z.string(),
         companyId: z.string(),
-        companyLink: z.string(),
+        companyLink: z.string().optional(),
         jobTitle: z.string().optional(),
         duration: z.string().optional(),
         description: z.string().optional(),
@@ -58,12 +26,14 @@ export const linkedinRouter = {
       })).optional(),
       education: z.array(z.object({
         schoolName: z.string(),
+        schoolId: z.string(),
+        schoolLink: z.string().optional(),
         degree: z.string().optional(),
         duration: z.string().optional(),
       })).optional(),
+      lastUpdated: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      // First upsert the profile
       const profile = await ctx.db.profile.upsert({
         where: {
           username: input.username,
@@ -73,6 +43,7 @@ export const linkedinRouter = {
           headline: input.headline,
           location: input.location,
           profileUrl: input.profileUrl,
+          lastUpdated: input.lastUpdated,
         },
         create: {
           username: input.username,
@@ -80,13 +51,13 @@ export const linkedinRouter = {
           headline: input.headline,
           location: input.location,
           profileUrl: input.profileUrl,
+          lastUpdated: input.lastUpdated,
         },
       });
 
       if (input.experiences) {
         for (const exp of input.experiences) {
           try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const organization = await ctx.db.organization.upsert({
               where: {
                 companyId: exp.companyId,
@@ -100,30 +71,35 @@ export const linkedinRouter = {
               },
             });
 
-            if (organization) {
-              await ctx.db.engagement.upsert({
-                where: {
-                  profileId_organizationId: {
-                    profileId: profile.id,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                    organizationId: organization.id,
-                  },
-                },
-                update: {
-                  type: "experience",
-                  startDate: exp.duration?.includes(' - ') ? (() => { const date = new Date(exp.duration.split(' - ')[0] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
-                  endDate: exp.duration?.includes(' - ') ? (() => { const date = new Date(exp.duration.split(' - ')[1] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
-                },
-                create: {
-                  type: "experience",
+            const parseDate = (dateStr: string | undefined) => {
+              if (!dateStr) return null;
+              const date = new Date(dateStr);
+              return isNaN(date.getTime()) ? null : date;
+            };
+
+            const [startDate, endDate] = exp.duration?.split(' - ').map(parseDate) ?? [null, null];
+
+            await ctx.db.engagement.upsert({
+              where: {
+                profileId_organizationId: {
                   profileId: profile.id,
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                   organizationId: organization.id,
-                  startDate: exp.duration?.includes(' - ') ? (() => { const date = new Date(exp.duration.split(' - ')[0] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
-                  endDate: exp.duration?.includes(' - ') ? (() => { const date = new Date(exp.duration.split(' - ')[1] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
                 },
-              });
-            }
+              },
+              update: {
+                type: "experience",
+                startDate,
+                endDate,
+              },
+              create: {
+                type: "experience",
+                profileId: profile.id,
+                organizationId: organization.id,
+                startDate,
+                endDate,
+              },
+            });
+            
           } catch (error) {
             console.error("Error processing experience:", error);
             throw new Error(`Failed to process experience: ${error instanceof Error ? error.message : String(error)}`);
@@ -131,20 +107,18 @@ export const linkedinRouter = {
         }
       }
 
-      // Handle education
       if (input.education) {
         for (const edu of input.education) {
           try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const organization = await ctx.db.organization.upsert({
               where: {
-                companyId: edu.schoolName,
+                companyId: edu.schoolId,
               },
               update: {
                 name: edu.schoolName,
               },
               create: {
-                companyId: edu.schoolName,
+                companyId: edu.schoolId,
                 name: edu.schoolName,
               },
             });
@@ -153,7 +127,6 @@ export const linkedinRouter = {
               where: {
                 profileId_organizationId: {
                     profileId: profile.id,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                     organizationId: organization.id,
                   },
                 },
@@ -165,13 +138,11 @@ export const linkedinRouter = {
                 create: {
                   type: "education",
                   profileId: profile.id,
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                   organizationId: organization.id,
                   startDate: edu.duration?.includes(' - ') ? (() => { const date = new Date(edu.duration.split(' - ')[0] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
                   endDate: edu.duration?.includes(' - ') ? (() => { const date = new Date(edu.duration.split(' - ')[1] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
                 },
-              });
-            }
+            });
           } catch (error) {
             console.error("Error processing education:", error);
             throw new Error(`Failed to process education: ${error instanceof Error ? error.message : String(error)}`);

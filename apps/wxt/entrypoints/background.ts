@@ -19,6 +19,7 @@ export default defineBackground(() => {
             profileUrl: storedUserData.profileUrl,
             experiences: storedUserData.experiences,
             education: storedUserData.education,
+            lastUpdated: new Date().toISOString(),
           }
         }),
       })

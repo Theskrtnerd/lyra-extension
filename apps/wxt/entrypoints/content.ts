@@ -40,8 +40,8 @@ function mainProfile(ctx: ContentScriptContext) {
       
       if (subComponents && roleElements && roleElements.length > 0) {
         const companyElement = experienceEntity?.querySelector('.t-14.t-normal');
-        const companyLink = experienceEntity?.querySelector('.hoverable-link-text.t-bold')?.getAttribute('href') ?? '';
-        const companyId = companyLink.split('/company/')[1]?.split('/')[0] ?? '';
+        const companyLink = experienceEntity?.querySelector('a[data-field="experience_company_logo"]')?.getAttribute('href') ?? '';
+        const companyId = companyLink.split('/company/')[1]?.split('/')[0] ?? crypto.randomUUID();;
         const companyName = experienceEntity?.querySelector('.hoverable-link-text.t-bold span[aria-hidden="true"]')?.textContent?.trim();
         const companyDuration = companyElement?.textContent?.trim();
         
@@ -70,8 +70,8 @@ function mainProfile(ctx: ContentScriptContext) {
         
         const companyElement = experienceEntity?.querySelector('.t-14.t-normal span[aria-hidden="true"]');
         const companyName = companyElement?.textContent?.split('·')[0].trim();
-        const companyLink = experienceEntity?.querySelector('.hoverable-link-text.t-bold')?.getAttribute('href') ?? '';
-        const companyId = companyLink.split('/company/')[1]?.split('/')[0] ?? '';
+        const companyLink = experienceEntity?.querySelector('a.optional-action-target-wrapper')?.getAttribute('href') ?? '';
+        const companyId = companyLink.split('/company/')[1]?.split('/')[0] ?? crypto.randomUUID();;
         
         const durationElement = experienceEntity?.querySelector('span.pvs-entity__caption-wrapper[aria-hidden="true"]');
         const duration = durationElement?.textContent?.trim();
@@ -94,9 +94,11 @@ function mainProfile(ctx: ContentScriptContext) {
     const educationElements = educationSection?.querySelectorAll('.artdeco-list__item') ?? [];
     const education = Array.from(educationElements).map(element => {
       const schoolName = element.querySelector('.hoverable-link-text.t-bold span[aria-hidden="true"]')?.textContent?.trim();
+      const schoolLink = element.querySelector('a.optional-action-target-wrapper')?.getAttribute('href') ?? '';
+      const schoolId = schoolLink.split('/company/')[1]?.split('/')[0] ?? crypto.randomUUID();
       const degree = element.querySelector('.t-14.t-normal span[aria-hidden="true"]')?.textContent?.trim();
       const duration = element.querySelector('span.pvs-entity__caption-wrapper[aria-hidden="true"]')?.textContent?.trim();
-      return { schoolName, degree, duration };
+      return { schoolName, schoolId, schoolLink, degree, duration };
     });
 
     const userData = {

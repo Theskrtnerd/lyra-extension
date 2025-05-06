@@ -66,6 +66,7 @@ model Profile {
   headline    String?
   location    String?
   profileUrl  String?
+  lastUpdated DateTime?
   engagements Engagement[]
 }
 
