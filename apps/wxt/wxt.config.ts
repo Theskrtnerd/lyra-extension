@@ -11,6 +11,7 @@ export default defineConfig({
     ],
     host_permissions: [
       'https://*.linkedin.com/*',
+      'https://lyra-extension-nextjs-f1rikbvgw-theskrtnerds-projects.vercel.app/*',
     ]
   },
 });
