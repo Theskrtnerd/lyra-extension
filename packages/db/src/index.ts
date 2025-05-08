@@ -18,7 +18,9 @@ const prismaClientSingleton = () => {
     });
   } catch (error) {
     console.error("Failed to initialize Prisma client:", error);
-    throw new Error(`Prisma client initialization failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Prisma client initialization failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 };
 

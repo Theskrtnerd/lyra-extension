@@ -5,34 +5,50 @@ import { publicProcedure } from "../trpc";
 
 export const linkedinRouter = {
   upsert: publicProcedure
-    .input(z.object({
-      username: z.string(),
-      name: z.string(),
-      headline: z.string().optional(),
-      location: z.string().optional(),
-      profileUrl: z.string(),
-      experiences: z.array(z.object({
-        companyName: z.string(),
-        companyId: z.string(),
-        companyLink: z.string().optional(),
-        jobTitle: z.string().optional(),
-        duration: z.string().optional(),
-        description: z.string().optional(),
-        roles: z.array(z.object({
-          jobTitle: z.string().optional(),
-          employmentType: z.string().optional(),
-          duration: z.string().optional(),
-        })).optional(),
-      })).optional(),
-      education: z.array(z.object({
-        schoolName: z.string(),
-        schoolId: z.string(),
-        schoolLink: z.string().optional(),
-        degree: z.string().optional(),
-        duration: z.string().optional(),
-      })).optional(),
-      lastUpdated: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        username: z.string(),
+        name: z.string(),
+        headline: z.string().optional(),
+        location: z.string().optional(),
+        profileUrl: z.string(),
+        experiences: z
+          .array(
+            z.object({
+              order: z.number(),
+              companyName: z.string(),
+              companyId: z.string(),
+              companyLink: z.string().optional(),
+              jobTitle: z.string().optional(),
+              duration: z.string().optional(),
+              description: z.string().optional(),
+              roles: z
+                .array(
+                  z.object({
+                    jobTitle: z.string().optional(),
+                    employmentType: z.string().optional(),
+                    duration: z.string().optional(),
+                  }),
+                )
+                .optional(),
+            }),
+          )
+          .optional(),
+        education: z
+          .array(
+            z.object({
+              order: z.number(),
+              schoolName: z.string(),
+              schoolId: z.string(),
+              schoolLink: z.string().optional(),
+              degree: z.string().optional(),
+              duration: z.string().optional(),
+            }),
+          )
+          .optional(),
+        lastUpdated: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const profile = await ctx.db.profile.upsert({
         where: {
@@ -77,7 +93,9 @@ export const linkedinRouter = {
               return isNaN(date.getTime()) ? null : date;
             };
 
-            const [startDate, endDate] = exp.duration?.split(' - ').map(parseDate) ?? [null, null];
+            const [startDate, endDate] = exp.duration
+              ?.split(" - ")
+              .map(parseDate) ?? [null, null];
 
             await ctx.db.engagement.upsert({
               where: {
@@ -99,10 +117,11 @@ export const linkedinRouter = {
                 endDate,
               },
             });
-            
           } catch (error) {
             console.error("Error processing experience:", error);
-            throw new Error(`Failed to process experience: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(
+              `Failed to process experience: ${error instanceof Error ? error.message : String(error)}`,
+            );
           }
         }
       }
@@ -126,26 +145,48 @@ export const linkedinRouter = {
             await ctx.db.engagement.upsert({
               where: {
                 profileId_organizationId: {
-                    profileId: profile.id,
-                    organizationId: organization.id,
-                  },
-                },
-                update: {
-                  type: "education",
-                  startDate: edu.duration?.includes(' - ') ? (() => { const date = new Date(edu.duration.split(' - ')[0] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
-                  endDate: edu.duration?.includes(' - ') ? (() => { const date = new Date(edu.duration.split(' - ')[1] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
-                },
-                create: {
-                  type: "education",
                   profileId: profile.id,
                   organizationId: organization.id,
-                  startDate: edu.duration?.includes(' - ') ? (() => { const date = new Date(edu.duration.split(' - ')[0] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
-                  endDate: edu.duration?.includes(' - ') ? (() => { const date = new Date(edu.duration.split(' - ')[1] ?? ''); return isNaN(date.getTime()) ? null : date; })() : null,
                 },
+              },
+              update: {
+                type: "education",
+                startDate: edu.duration?.includes(" - ")
+                  ? (() => {
+                      const date = new Date(edu.duration.split(" - ")[0] ?? "");
+                      return isNaN(date.getTime()) ? null : date;
+                    })()
+                  : null,
+                endDate: edu.duration?.includes(" - ")
+                  ? (() => {
+                      const date = new Date(edu.duration.split(" - ")[1] ?? "");
+                      return isNaN(date.getTime()) ? null : date;
+                    })()
+                  : null,
+              },
+              create: {
+                type: "education",
+                profileId: profile.id,
+                organizationId: organization.id,
+                startDate: edu.duration?.includes(" - ")
+                  ? (() => {
+                      const date = new Date(edu.duration.split(" - ")[0] ?? "");
+                      return isNaN(date.getTime()) ? null : date;
+                    })()
+                  : null,
+                endDate: edu.duration?.includes(" - ")
+                  ? (() => {
+                      const date = new Date(edu.duration.split(" - ")[1] ?? "");
+                      return isNaN(date.getTime()) ? null : date;
+                    })()
+                  : null,
+              },
             });
           } catch (error) {
             console.error("Error processing education:", error);
-            throw new Error(`Failed to process education: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(
+              `Failed to process education: ${error instanceof Error ? error.message : String(error)}`,
+            );
           }
         }
       }

@@ -5,14 +5,13 @@ export default defineBackground(() => {
     if (message.type === "SEND_USER_DATA") {
       storedUserData = message.payload;
       console.log("User data stored in background:", storedUserData);
-      fetch(`https://lyra-extension-nextjs-theskrtnerds-projects.vercel.app/api/trpc`, {
+      fetch(`https://lyra-extension-nextjs.vercel.app/api/trpc/linkedin.upsert`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          method: "linkedin.upsert",
-          params: {
+          json: {
             username: storedUserData.username,
             name: storedUserData.name,
             headline: storedUserData.headline,

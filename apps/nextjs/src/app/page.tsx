@@ -1,5 +1,7 @@
 import { Suspense } from "react";
+
 import { HydrateClient } from "~/trpc/server";
+
 // import { ProfileTable } from "./_components/linkedin";
 
 export default function HomePage() {

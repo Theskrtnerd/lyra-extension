@@ -4,12 +4,12 @@ export default defineContentScript({
   matches: ['*://*.linkedin.com/*'],
   main(ctx) {
     ctx.addEventListener(window, 'wxt:locationchange', ({ newUrl }) => {
-      if (linkedinProfilePattern.includes(newUrl)) mainProfile(ctx);
+      if (linkedinProfilePattern.includes(newUrl)) mainProfile();
     });
   },
 });
 
-function mainProfile(ctx: ContentScriptContext) {
+function mainProfile() {
   const extractUserData = () => {
     const username = window.location.pathname.split('/in/')[1].split('/')[0];
     const profileUrl = window.location.href;
@@ -32,7 +32,8 @@ function mainProfile(ctx: ContentScriptContext) {
 
     const experienceSection = document.querySelector('div#experience')?.closest('section');
     const experienceElements = experienceSection?.querySelectorAll('.artdeco-list__item') ?? [];
-    const experiences = Array.from(experienceElements).map(element => {
+    const experiences = Array.from(experienceElements).map((element, index) => {
+      const order = index;
       const experienceEntity = element.querySelector('[data-view-name="profile-component-entity"]');
       
       const subComponents = element.querySelector('.pvs-entity__sub-components');
@@ -58,6 +59,7 @@ function mainProfile(ctx: ContentScriptContext) {
         });
         
         return {
+          order,
           companyName,
           companyLink,
           companyId,
@@ -80,6 +82,7 @@ function mainProfile(ctx: ContentScriptContext) {
         const description = descriptionElement?.textContent?.trim();
         
         return {
+          order,
           jobTitle,
           companyName,
           companyLink,
@@ -92,13 +95,14 @@ function mainProfile(ctx: ContentScriptContext) {
 
     const educationSection = document.querySelector('div#education')?.closest('section');
     const educationElements = educationSection?.querySelectorAll('.artdeco-list__item') ?? [];
-    const education = Array.from(educationElements).map(element => {
+    const education = Array.from(educationElements).map((element, index) => {
+      const order = index;
       const schoolName = element.querySelector('.hoverable-link-text.t-bold span[aria-hidden="true"]')?.textContent?.trim();
       const schoolLink = element.querySelector('a.optional-action-target-wrapper')?.getAttribute('href') ?? '';
       const schoolId = schoolLink.split('/company/')[1]?.split('/')[0] ?? crypto.randomUUID();
       const degree = element.querySelector('.t-14.t-normal span[aria-hidden="true"]')?.textContent?.trim();
       const duration = element.querySelector('span.pvs-entity__caption-wrapper[aria-hidden="true"]')?.textContent?.trim();
-      return { schoolName, schoolId, schoolLink, degree, duration };
+      return { order, schoolName, schoolId, schoolLink, degree, duration };
     });
 
     const userData = {
