@@ -108,6 +108,7 @@ export const linkedinRouter = {
                 type: "experience",
                 startDate,
                 endDate,
+                order: exp.order,
               },
               create: {
                 type: "experience",
@@ -115,6 +116,7 @@ export const linkedinRouter = {
                 organizationId: organization.id,
                 startDate,
                 endDate,
+                order: exp.order,
               },
             });
           } catch (error) {
@@ -142,6 +144,16 @@ export const linkedinRouter = {
               },
             });
 
+            const parseDate = (dateStr: string | undefined) => {
+              if (!dateStr) return null;
+              const date = new Date(dateStr);
+              return isNaN(date.getTime()) ? null : date;
+            };
+
+            const [startDate, endDate] = edu.duration
+              ?.split(" - ")
+              .map(parseDate) ?? [null, null];
+
             await ctx.db.engagement.upsert({
               where: {
                 profileId_organizationId: {
@@ -151,35 +163,17 @@ export const linkedinRouter = {
               },
               update: {
                 type: "education",
-                startDate: edu.duration?.includes(" - ")
-                  ? (() => {
-                      const date = new Date(edu.duration.split(" - ")[0] ?? "");
-                      return isNaN(date.getTime()) ? null : date;
-                    })()
-                  : null,
-                endDate: edu.duration?.includes(" - ")
-                  ? (() => {
-                      const date = new Date(edu.duration.split(" - ")[1] ?? "");
-                      return isNaN(date.getTime()) ? null : date;
-                    })()
-                  : null,
+                startDate,
+                endDate,
+                order: edu.order,
               },
               create: {
                 type: "education",
                 profileId: profile.id,
                 organizationId: organization.id,
-                startDate: edu.duration?.includes(" - ")
-                  ? (() => {
-                      const date = new Date(edu.duration.split(" - ")[0] ?? "");
-                      return isNaN(date.getTime()) ? null : date;
-                    })()
-                  : null,
-                endDate: edu.duration?.includes(" - ")
-                  ? (() => {
-                      const date = new Date(edu.duration.split(" - ")[1] ?? "");
-                      return isNaN(date.getTime()) ? null : date;
-                    })()
-                  : null,
+                startDate,
+                endDate,
+                order: edu.order,
               },
             });
           } catch (error) {
