@@ -43,6 +43,8 @@ export default defineBackground(() => {
 
       sendResponse(storedUserData);
       return true;
+    } else if (message.type === "EMPTY_USER_DATA") {
+      storedUserData = null;
     }
   });
 });

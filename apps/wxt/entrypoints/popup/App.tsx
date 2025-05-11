@@ -8,7 +8,6 @@ function App() {
   useEffect(() => {
     console.log("🔍 Sending GET_USER_DATA message");
     browser.runtime.sendMessage({ type: 'GET_USER_DATA' }, (response) => {
-      console.log("🔍 Response:", response);
       console.log("✅ User data received in popup:", response);
       setUserData(response);
       setLoading(false);
@@ -18,63 +17,88 @@ function App() {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading profile data...</p>
+        <div className="spinner"></div>
+        <p className="loading-text">Loading profile data...</p>
       </div>
     );
   }
 
   if (!userData) {
     return (
-      <div className="container empty-state">
-        <div className="empty-icon">📋</div>
-        <h1>LinkedIn Profile Data</h1>
-        <p>No data available. Please visit a LinkedIn profile page.</p>
-        <button className="primary-button" onClick={() => window.close()}>Close</button>
+      <div className="popup-container">
+        <div className="empty-state">
+          <div className="empty-icon">📋</div>
+          <h1 className="empty-title">LinkedIn Profile Data</h1>
+          <p className="empty-message">No data available. Please visit a LinkedIn profile page.</p>
+          <button 
+            className="button"
+            onClick={() => window.close()}
+          >
+            Close
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <header className="app-header">
-        <h1>LinkedIn Profile</h1>
+    <div className="popup-container">
+      <header className="header">
+        <h1 className="header-title">LinkedIn Profile</h1>
+        {userData.profileUrl && (
+          <a 
+            href={userData.profileUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="link"
+          >
+            View on LinkedIn
+          </a>
+        )}
       </header>
       
       <div className="profile-card">
         <div className="profile-header">
-          {userData.profileImage && (
+          {userData.profileImage ? (
             <div className="profile-image">
               <img src={userData.profileImage} alt={userData.name || 'Profile'} />
             </div>
+          ) : (
+            <div className="profile-image-placeholder">
+              {userData.name ? userData.name.charAt(0).toUpperCase() : '?'}
+            </div>
           )}
           <div className="profile-info">
-            <h2>{userData.name || 'Unknown Name'}</h2>
-            <p className="headline">{userData.headline || ''}</p>
-            {userData.location && <p className="location">{userData.location}</p>}
+            <h2 className="profile-name">{userData.name || 'Unknown Name'}</h2>
+            <p className="profile-headline">{userData.headline || ''}</p>
+            {userData.location && (
+              <p className="profile-location">
+                <span className="location-icon">📍</span> {userData.location}
+              </p>
+            )}
           </div>
         </div>
         
         {userData.about && (
           <div className="section">
-            <h3>About</h3>
-            <div className="card-content">
-              <p>{userData.about}</p>
+            <h3 className="section-title">About</h3>
+            <div className="section-content">
+              <p className="description">{userData.about}</p>
             </div>
           </div>
         )}
         
         <div className="section">
-          <h3>Experience</h3>
-          <div className="card-content">
+          <h3 className="section-title">Experience</h3>
+          <div className="section-content">
             {renderExperiences(userData.experiences)}
           </div>
         </div>
         
         {userData.education && userData.education.length > 0 && (
           <div className="section">
-            <h3>Education</h3>
-            <div className="card-content">
+            <h3 className="section-title">Education</h3>
+            <div className="section-content">
               {renderEducation(userData.education)}
             </div>
           </div>
@@ -82,10 +106,12 @@ function App() {
 
         {userData.skills && userData.skills.length > 0 && (
           <div className="section">
-            <h3>Skills</h3>
+            <h3 className="section-title">Skills</h3>
             <div className="skills-container">
               {userData.skills.map((skill: string, index: number) => (
-                <span key={index} className="skill-tag">{skill}</span>
+                <span key={index} className="skill-tag">
+                  {skill}
+                </span>
               ))}
             </div>
           </div>
@@ -101,31 +127,38 @@ function renderExperiences(experiences: any[]) {
   }
   
   return (
-    <div className="experiences-list">
+    <div className="experience-list">
       {experiences.map((exp, index) => (
         <div key={index} className="experience-item">
+          {index < experiences.length - 1 && (
+            <div className="divider"></div>
+          )}
+          
           {exp.roles ? (
             // Multi-role experience
             <>
               <div className="company-header">
-                {exp.companyLogo && (
+                {exp.companyLogo ? (
                   <div className="company-logo">
                     <img src={exp.companyLogo} alt={exp.companyName || 'Company'} />
                   </div>
+                ) : (
+                  <div className="company-logo"></div>
                 )}
-                <div>
-                  <h4>{exp.companyName || 'Unknown Company'}</h4>
-                  <p className="duration">{exp.companyDuration || ''}</p>
+                <div className="company-info">
+                  <h4 className="company-name">{exp.companyName || 'Unknown Company'}</h4>
+                  <p className="company-duration">{exp.companyDuration || ''}</p>
                 </div>
               </div>
               <div className="roles-container">
                 {exp.roles.map((role: any, roleIndex: number) => (
                   <div key={roleIndex} className="role-item">
-                    <h5>{role.jobTitle || 'Unknown Role'}</h5>
+                    <div className="role-bullet"></div>
+                    <h5 className="role-title">{role.jobTitle || 'Unknown Role'}</h5>
                     <p className="role-details">
-                      <span className="employment-type">{role.employmentType || ''}</span>
-                      {role.employmentType && role.duration && <span className="dot-separator">•</span>}
-                      <span className="duration">{role.duration || ''}</span>
+                      <span>{role.employmentType || ''}</span>
+                      {role.employmentType && role.duration && <span className="role-separator">•</span>}
+                      <span className="role-duration">{role.duration || ''}</span>
                     </p>
                     {role.description && <p className="description">{role.description}</p>}
                   </div>
@@ -136,24 +169,26 @@ function renderExperiences(experiences: any[]) {
             // Single role experience
             <>
               <div className="company-header">
-                {exp.companyLogo && (
+                {exp.companyLogo ? (
                   <div className="company-logo">
                     <img src={exp.companyLogo} alt={exp.companyName || 'Company'} />
                   </div>
+                ) : (
+                  <div className="company-logo"></div>
                 )}
-                <div>
-                  <h4>{exp.jobTitle || 'Unknown Role'}</h4>
-                  <p className="company-details">
-                    <span className="company-name">{exp.companyName || 'Unknown Company'}</span>
-                    {exp.companyName && exp.duration && <span className="dot-separator">•</span>}
-                    <span className="duration">{exp.duration || ''}</span>
+                <div className="company-info">
+                  <h4 className="company-name">{exp.jobTitle || 'Unknown Role'}</h4>
+                  <p className="role-details">
+                    <span>{exp.companyName || 'Unknown Company'}</span>
+                    {exp.companyName && exp.duration && <span className="role-separator">•</span>}
+                    <span className="role-duration">{exp.duration || ''}</span>
                   </p>
                 </div>
               </div>
               {exp.description && <p className="description">{exp.description}</p>}
               {exp.skills && (
-                <div className="experience-skills">
-                  <p>Skills: {exp.skills}</p>
+                <div className="skills-info">
+                  <p className="skills-text">Skills: {exp.skills}</p>
                 </div>
               )}
             </>
@@ -173,16 +208,18 @@ function renderEducation(education: any[]) {
     <div className="education-list">
       {education.map((edu, index) => (
         <div key={index} className="education-item">
-          <div className="education-header">
-            {edu.schoolLogo && (
+          <div className="school-header">
+            {edu.schoolLogo ? (
               <div className="school-logo">
                 <img src={edu.schoolLogo} alt={edu.schoolName || 'School'} />
               </div>
+            ) : (
+              <div className="school-logo"></div>
             )}
-            <div>
-              <h4>{edu.schoolName || 'Unknown School'}</h4>
-              <p className="degree">{edu.degree || ''}</p>
-              <p className="duration">{edu.duration || ''}</p>
+            <div className="school-info">
+              <h4 className="school-name">{edu.schoolName || 'Unknown School'}</h4>
+              <p className="school-degree">{edu.degree || ''}</p>
+              <p className="school-duration">{edu.duration || ''}</p>
               {edu.description && <p className="description">{edu.description}</p>}
             </div>
           </div>

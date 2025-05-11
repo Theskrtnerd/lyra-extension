@@ -6,12 +6,11 @@ export default defineConfig({
   manifest: {
     permissions: [
       'storage',
-      'tabs',
       'scripting',
     ],
     host_permissions: [
       'https://*.linkedin.com/*',
-      'https://lyra-extension-nextjs-f1rikbvgw-theskrtnerds-projects.vercel.app/*',
+      'https://lyra-extension-nextjs.vercel.app/*',
     ]
   },
 });

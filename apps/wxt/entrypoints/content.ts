@@ -3,8 +3,16 @@ const linkedinProfilePattern = new MatchPattern('*://*.linkedin.com/in/*');
 export default defineContentScript({
   matches: ['*://*.linkedin.com/*'],
   main(ctx) {
+    if (linkedinProfilePattern.includes(window.location.href)) {
+      mainProfile();
+    }
     ctx.addEventListener(window, 'wxt:locationchange', ({ newUrl }) => {
       if (linkedinProfilePattern.includes(newUrl)) mainProfile();
+      else {
+        browser.runtime.sendMessage({
+          type: "EMPTY_USER_DATA",
+        });
+      } 
     });
   },
 });
@@ -20,7 +28,7 @@ function mainProfile() {
     const locationElement = document.querySelector('span.text-body-small.inline.t-black--light.break-words');
     const location = locationElement ? locationElement.textContent?.trim() : '';
 
-    const profileImageElement = document.querySelector(`img.evi-image[title="${name}"]`);
+    const profileImageElement = document.querySelector('button.profile-photo-edit__edit-btn')?.querySelector(`img.evi-image`);
     const profileImage = profileImageElement ? profileImageElement.getAttribute('src') : '';
 
     const headlineElement = document.querySelector('.text-body-medium.break-words');
@@ -40,12 +48,12 @@ function mainProfile() {
       const roleElements = subComponents?.querySelectorAll('[data-view-name="profile-component-entity"]');
       
       if (subComponents && roleElements && roleElements.length > 0) {
-        const companyElement = experienceEntity?.querySelector('.t-14.t-normal');
+        const companyElement = experienceEntity?.querySelector('.t-14.t-normal span[aria-hidden="true"]');
         const companyLink = experienceEntity?.querySelector('a[data-field="experience_company_logo"]')?.getAttribute('href') ?? '';
         const companyId = companyLink.split('/company/')[1]?.split('/')[0] ?? crypto.randomUUID();;
         const companyName = experienceEntity?.querySelector('.hoverable-link-text.t-bold span[aria-hidden="true"]')?.textContent?.trim();
         const companyDuration = companyElement?.textContent?.trim();
-        
+        const companyLogo = experienceEntity?.querySelector('img.evi-image')?.getAttribute('src') ?? '';
         const roles = Array.from(roleElements).map(roleElement => {
           const jobTitle = roleElement.querySelector('.hoverable-link-text.t-bold span[aria-hidden="true"]')?.textContent?.trim();
           const employmentType = roleElement.querySelector('.t-14.t-normal span[aria-hidden="true"]')?.textContent?.trim();
@@ -64,7 +72,8 @@ function mainProfile() {
           companyLink,
           companyId,
           companyDuration,
-          roles
+          roles,
+          companyLogo
         };
       } else {
         const titleElement = experienceEntity?.querySelector('.hoverable-link-text.t-bold span[aria-hidden="true"]');
@@ -74,6 +83,7 @@ function mainProfile() {
         const companyName = companyElement?.textContent?.split('·')[0].trim();
         const companyLink = experienceEntity?.querySelector('a.optional-action-target-wrapper')?.getAttribute('href') ?? '';
         const companyId = companyLink.split('/company/')[1]?.split('/')[0] ?? crypto.randomUUID();;
+        const companyLogo = experienceEntity?.querySelector('img.evi-image')?.getAttribute('src') ?? '';
         
         const durationElement = experienceEntity?.querySelector('span.pvs-entity__caption-wrapper[aria-hidden="true"]');
         const duration = durationElement?.textContent?.trim();
@@ -89,6 +99,7 @@ function mainProfile() {
           companyId,
           duration,
           description,
+          companyLogo
         };
       }
     });
@@ -100,9 +111,10 @@ function mainProfile() {
       const schoolName = element.querySelector('.hoverable-link-text.t-bold span[aria-hidden="true"]')?.textContent?.trim();
       const schoolLink = element.querySelector('a.optional-action-target-wrapper')?.getAttribute('href') ?? '';
       const schoolId = schoolLink.split('/company/')[1]?.split('/')[0] ?? crypto.randomUUID();
+      const schoolLogo = element.querySelector('img.evi-image')?.getAttribute('src') ?? '';
       const degree = element.querySelector('.t-14.t-normal span[aria-hidden="true"]')?.textContent?.trim();
       const duration = element.querySelector('span.pvs-entity__caption-wrapper[aria-hidden="true"]')?.textContent?.trim();
-      return { order, schoolName, schoolId, schoolLink, degree, duration };
+      return { order, schoolName, schoolId, schoolLink, degree, duration, schoolLogo };
     });
 
     const userData = {
@@ -127,5 +139,5 @@ function mainProfile() {
 
   setTimeout(() => {
     extractUserData();
-  }, 2000);
+  }, 1000);
 }
