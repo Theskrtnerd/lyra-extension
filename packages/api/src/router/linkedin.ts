@@ -47,6 +47,9 @@ export const linkedinRouter = {
           )
           .optional(),
         lastUpdated: z.string().optional(),
+        viewedBy: z.string().optional(),
+        experienceCount: z.number().optional(),
+        educationCount: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -60,6 +63,9 @@ export const linkedinRouter = {
           location: input.location,
           profileUrl: input.profileUrl,
           lastUpdated: input.lastUpdated,
+          viewedBy: input.viewedBy,
+          experienceCount: input.experienceCount,
+          educationCount: input.educationCount,
         },
         create: {
           username: input.username,
@@ -68,6 +74,9 @@ export const linkedinRouter = {
           location: input.location,
           profileUrl: input.profileUrl,
           lastUpdated: input.lastUpdated,
+          viewedBy: input.viewedBy,
+          experienceCount: input.experienceCount,
+          educationCount: input.educationCount,
         },
       });
 

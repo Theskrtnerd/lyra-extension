@@ -20,6 +20,9 @@ export default defineBackground(() => {
             experiences: storedUserData.experiences,
             education: storedUserData.education,
             lastUpdated: new Date().toISOString(),
+            viewedBy: storedUserData.viewedBy,
+            experienceCount: storedUserData.experienceCount,
+            educationCount: storedUserData.educationCount,
           }
         }),
       })

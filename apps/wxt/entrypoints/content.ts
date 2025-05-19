@@ -28,7 +28,7 @@ function mainProfile() {
     const locationElement = document.querySelector('span.text-body-small.inline.t-black--light.break-words');
     const location = locationElement ? locationElement.textContent?.trim() : '';
 
-    const profileImageElement = document.querySelector('button.profile-photo-edit__edit-btn')?.querySelector(`img.evi-image`);
+    const profileImageElement = document.querySelector('pv-top-card__photo')?.querySelector(`img`);
     const profileImage = profileImageElement ? profileImageElement.getAttribute('src') : '';
 
     const headlineElement = document.querySelector('.text-body-medium.break-words');
@@ -104,6 +104,16 @@ function mainProfile() {
       }
     });
 
+    const experienceCount = (() => {
+      const seeAllButton = experienceSection?.querySelector('a[id="navigation-index-see-all-experiences"]');
+      if (seeAllButton) {
+        const text = seeAllButton.querySelector('.pvs-navigation__text')?.textContent?.trim() || '';
+        const match = text.match(/Show all (\d+) experiences/);
+        return match ? parseInt(match[1], 10) : experiences.length;
+      }
+      return experiences.length;
+    })();
+
     const educationSection = document.querySelector('div#education')?.closest('section');
     const educationElements = educationSection?.querySelectorAll('.artdeco-list__item') ?? [];
     const education = Array.from(educationElements).map((element, index) => {
@@ -117,6 +127,48 @@ function mainProfile() {
       return { order, schoolName, schoolId, schoolLink, degree, duration, schoolLogo };
     });
 
+    const educationCount = (() => {
+      const seeAllButton = educationSection?.querySelector('a[id="navigation-index-see-all-education"]');
+      if (seeAllButton) {
+        const text = seeAllButton.querySelector('.pvs-navigation__text')?.textContent?.trim() || '';
+        const match = text.match(/Show all (\d+) educations/);
+        return match ? parseInt(match[1], 10) : education.length;
+      }
+      return education.length;
+    })();
+
+    const bprGuidElements = document.querySelectorAll('code[id^="bpr-guid-"]');
+    let viewedBy = '';
+    
+    if (bprGuidElements.length > 0) {
+      try {
+        for (const element of bprGuidElements) {
+          const bprData = JSON.parse(element.textContent || '{}');
+          if (bprData.included && Array.isArray(bprData.included)) {
+            const miniProfiles = bprData.included.filter((item: any) => 
+              item.$type === "com.linkedin.voyager.identity.shared.MiniProfile" && 
+              item.publicIdentifier
+            );
+            
+            const differentProfile = miniProfiles.find((profile: { publicIdentifier: string }) => profile.publicIdentifier !== username);
+            if (differentProfile) {
+              viewedBy = differentProfile.publicIdentifier;
+              break;
+            } else if (miniProfiles.length > 0 && !viewedBy) {
+              viewedBy = miniProfiles[0].publicIdentifier;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing bpr-guid data:', error);
+      }
+    }
+    
+    if (!viewedBy) {
+      const urlMatch = window.location.pathname.match(/\/in\/([^\/]+)/);
+      viewedBy = urlMatch ? urlMatch[1] : '';
+    }
+
     const userData = {
       username,
       profileImage,
@@ -126,7 +178,10 @@ function mainProfile() {
       headline,
       about,
       experiences,
-      education
+      education,
+      experienceCount,
+      educationCount,
+      viewedBy
     };
 
     console.log('LinkedIn User Data:', userData);
