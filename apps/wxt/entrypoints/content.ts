@@ -28,7 +28,7 @@ function mainProfile() {
     const locationElement = document.querySelector('span.text-body-small.inline.t-black--light.break-words');
     const location = locationElement ? locationElement.textContent?.trim() : '';
 
-    const profileImageElement = document.querySelector('pv-top-card__photo')?.querySelector(`img`);
+    const profileImageElement = document.querySelector('.pv-top-card__photo')?.querySelector(`img`);
     const profileImage = profileImageElement ? profileImageElement.getAttribute('src') : '';
 
     const headlineElement = document.querySelector('.text-body-medium.break-words');
