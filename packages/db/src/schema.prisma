@@ -101,5 +101,5 @@ model Engagement {
   organizationId String
   order          Int
 
-  @@unique([profileId, organizationId])
+  @@unique([profileId, organizationId, type])
 }
