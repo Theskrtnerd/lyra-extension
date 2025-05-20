@@ -108,13 +108,13 @@ export const linkedinRouter = {
 
             await ctx.db.engagement.upsert({
               where: {
-                profileId_organizationId: {
+                profileId_organizationId_type: {
                   profileId: profile.id,
                   organizationId: organization.id,
+                  type: "experience",
                 },
               },
               update: {
-                type: "experience",
                 startDate,
                 endDate,
                 order: exp.order,
@@ -165,13 +165,13 @@ export const linkedinRouter = {
 
             await ctx.db.engagement.upsert({
               where: {
-                profileId_organizationId: {
+                profileId_organizationId_type: {
                   profileId: profile.id,
                   organizationId: organization.id,
+                  type: "education",
                 },
               },
               update: {
-                type: "education",
                 startDate,
                 endDate,
                 order: edu.order,

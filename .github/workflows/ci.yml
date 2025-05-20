@@ -69,7 +69,7 @@ jobs:
 
       - name: Copy env
         shell: bash
-        run: cp .env.example .env
+        run: cp .env.production .env
 
       - name: Apply database migrations
         run: pnpm prisma migrate deploy
