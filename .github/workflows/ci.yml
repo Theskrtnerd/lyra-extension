@@ -4,8 +4,12 @@ on:
   pull_request:
     branches:
       - '**'
-  push:
-    branches: ["main", "dev", "**"]
+    push:
+      branches:
+        - main
+        - dev
+        - '**'
+
   merge_group:
 
 concurrency:
