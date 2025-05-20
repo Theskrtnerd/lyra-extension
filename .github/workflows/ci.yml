@@ -26,9 +26,6 @@ env:
 jobs:
   db-migrations:
     runs-on: ubuntu-latest
-
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [lint, format, typecheck]
     steps:
       - uses: actions/checkout@v4
 
