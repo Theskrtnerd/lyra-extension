@@ -73,6 +73,6 @@ jobs:
         run: cp .env.production .env
 
       - name: Apply database migrations
-        run: pnpm prisma migrate deploy
+        run: pnpm with-env prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
